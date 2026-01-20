@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Love Notebook 🔒💌</title>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;600&display=swap');
+
+    :root{
+      --paper:#fffaf2;
+      --ink:#3a0a0a;
+      --pink:#ff4d6d;
+    }
+
+    *{ margin:0; padding:0; box-sizing:border-box; }
+    body{
+      height:100vh; width:100vw;
+      overflow:hidden;
+      font-family:'Quicksand',sans-serif;
+      background: radial-gradient(circle at top, #ffe6ee 0%, #fff0f3 40%, #ffeef5 100%);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      position:relative;
+    }
+
+    /* ===== Gift Overlay ===== */
+    #giftOverlay{
+      position:fixed; inset:0;
+      background: linear-gradient(135deg,#12000a 0%, #3d001c 100%);
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      z-index:9999;
+      transition: transform 1s cubic-bezier(0.85,0,0.15,1);
+      color:#fff;
+      text-align:center;
+      padding:20px;
+    }
+    .giftBox{
+      font-size:110px;
+      cursor:pointer;
+      animation: shake 2.5s infinite;
+      user-select:none;
+      filter: drop-shadow(0 14px 30px rgba(255,77,109,0.35));
+    }
+    @keyframes shake{
+      0%,70%,100%{ transform: rotate(0deg) scale(1); }
+      80%{ transform: rotate(10deg) scale(1.03); }
+      90%{ transform: rotate(-10deg) scale(1.03); }
+    }
+    .giftText{
+      margin-top:18px;
+      font-family:'Dancing Script',cursive;
+      font-size:2.2rem;
+    }
+    .giftSub{
+      margin-top:8px;
+      font-size:0.95rem;
+      opacity:0.85;
+    }
+
+    /* ===== Background FX ===== */
+    #fxLayer{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      overflow:hidden;
+      z-index:0;
+    }
+    .fxItem{
+      position:absolute;
+      opacity:0;
+      animation: rise 6s linear infinite;
+      filter: drop-shadow(0 8px 15px rgba(0,0,0,0.12));
+    }
+    @keyframes rise{
+      0%{ transform: translateY(110vh) scale(0.9); opacity:0; }
+      15%{ opacity:1; }
+      100%{ transform: translateY(-15vh) scale(1.25); opacity:0; }
+    }
+
+    /* ===== Notebook Container ===== */
+    .notebookWrap{
+      width:min(520px, 92vw);
+      height:min(92vh, 760px);
+      position:relative;
+      z-index:2;
+      perspective: 1300px;
+    }
+
+    .notebook{
+      width:100%;
+      height:100%;
+      border-radius:28px;
+      background: rgba(255,255,255,0.35);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 25px 80px rgba(255,77,109,0.18);
+      padding:16px;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .themeGlow{
+      position:absolute;
+      inset:-2px;
+      border-radius:28px;
+      filter: blur(18px);
+      opacity:0.55;
+      z-index:0;
+      transition: 0.6s ease;
+    }
+
+    /* ===== Book (Stack) ===== */
+    #book{
+      position:absolute;
+      inset:16px;
+      border-radius:26px;
+      transform-style:preserve-3d;
+      z-index:2;
+    }
+
+    /* ===== Page ===== */
+    .page{
+      position:absolute;
+      inset:0;
+      border-radius:26px;
+      transform-style:preserve-3d;
+      transition: transform 0.9s cubic-bezier(0.77,0,0.18,1);
+      transform-origin: left center;
+      backface-visibility: hidden;
+      overflow:hidden;
+    }
+
+    .paper{
+      position:absolute;
+      inset:0;
+      border-radius:26px;
+      background:
+        linear-gradient(transparent 0%, transparent 92%, rgba(0,0,0,0.04) 100%),
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255,77,109,0) 0px,
+          rgba(255,77,109,0) 26px,
+          rgba(255,77,109,0.06) 27px
+        ),
+        linear-gradient(135deg, #fffaf2 0%, #fff3f7 100%);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.7);
+    }
+
+    .paper::before{
+      content:"";
+      position:absolute;
+      left:32px;
+      top:0;
+      width:2px;
+      height:100%;
+      background: rgba(255,77,109,0.32);
+    }
+
+    .rings{
+      position:absolute;
+      left:10px;
+      top:18px;
+      bottom:18px;
+      width:36px;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      opacity:0.65;
+      z-index:2;
+    }
+    .ring{
+      width:24px;
+      height:14px;
+      border-radius:20px;
+      border:2px solid rgba(255,77,109,0.22);
+      background: rgba(255,255,255,0.25);
+      box-shadow: 0 6px 10px rgba(0,0,0,0.06);
+    }
+
+    /* content */
+    .content{
+      position:absolute;
+      inset:0;
+      padding:22px 20px 22px 66px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      z-index:3;
+    }
+
+    .topTag{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+    .daySticker{
+      background: rgba(255,77,109,0.13);
+      border:1px dashed rgba(255,77,109,0.5);
+      padding:10px 14px;
+      border-radius:18px;
+      font-weight:700;
+      color:#8a0f20;
+      font-size:0.95rem;
+      max-width:70%;
+    }
+    .pageNo{
+      font-size:0.9rem;
+      opacity:0.65;
+      font-weight:600;
+    }
+
+    h1{
+      font-family:'Dancing Script',cursive;
+      color: var(--pink);
+      font-size:2.35rem;
+      text-shadow: 0 4px 18px rgba(255,77,109,0.25);
+      margin-top:4px;
+      line-height:1.05;
+      cursor:pointer;
+      user-select:none;
+    }
+
+    .gifBox{
+      width:100%;
+      height:260px;
+      border-radius:22px;
+      overflow:hidden;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid rgba(255,77,109,0.22);
+      box-shadow: 0 18px 45px rgba(0,0,0,0.08);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .gifBox img{
+      width:100%;
+      height:100%;
+      object-fit: cover;
+    }
+
+    .message{
+      font-size:1.08rem;
+      line-height:1.55;
+      color: var(--ink);
+      font-style: italic;
+
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 6px;
+
+      scrollbar-width: none;
+    }
+    .message::-webkit-scrollbar{
+      display:none;
+    }
+
+    .cursor{
+      display:inline-block;
+      width:7px;
+      height:16px;
+      background: rgba(58,10,10,0.55);
+      margin-left:3px;
+      border-radius:4px;
+      animation: blink 1.2s infinite;
+      transform: translateY(3px);
+    }
+    @keyframes blink{
+      50%{ opacity:0; }
+    }
+
+    .lockBox{
+      margin-top:8px;
+      padding:18px 16px;
+      border-radius:18px;
+      background: rgba(255,77,109,0.10);
+      border:1px dashed rgba(255,77,109,0.55);
+      text-align:center;
+    }
+    .lockTitle{
+      font-weight:800;
+      color:#a4002b;
+      margin-bottom:8px;
+      font-size:1.05rem;
+    }
+    .timerDigits{
+      font-size:1.7rem;
+      font-weight:900;
+      color:var(--pink);
+      letter-spacing:1px;
+    }
+
+    /* controls */
+    .flipControls{
+      position:fixed;
+      top:14px;
+      left:50%;
+      transform: translateX(-50%);
+      z-index:40;
+      display:none;
+      gap:10px;
+    }
+    .btn{
+      border:none;
+      cursor:pointer;
+      padding:10px 14px;
+      border-radius:999px;
+      background: rgba(255,255,255,0.65);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,77,109,0.22);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.08);
+      font-weight:800;
+      color:#7a0f1c;
+    }
+
+    .nav{
+      position:fixed;
+      bottom:14px;
+      left:50%;
+      transform:translateX(-50%);
+      background: rgba(255,255,255,0.55);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,77,109,0.20);
+      padding:10px 14px;
+      border-radius:999px;
+      display:flex;
+      gap:10px;
+      z-index:50;
+      box-shadow: 0 18px 40px rgba(255,77,109,0.15);
+    }
+    .dot{
+      width:11px;
+      height:11px;
+      border-radius:50%;
+      border:1px solid rgba(255,77,109,0.65);
+      background:#fff;
+      cursor:pointer;
+      transition:0.25s;
+    }
+    .dot.active{
+      background: var(--pink);
+      transform:scale(1.35);
+      box-shadow: 0 0 0 6px rgba(255,77,109,0.12);
+    }
+
+    /* ===== Valentine Celebration Layer ===== */
+    #celebrationLayer{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:9998;
+      overflow:hidden;
+      display:none;
+    }
+    .confetti{
+      position:absolute;
+      width:10px;
+      height:16px;
+      border-radius:4px;
+      opacity:0.9;
+      animation: confettiFall 3.8s linear forwards;
+    }
+    @keyframes confettiFall{
+      0%{ transform: translateY(-10vh) rotate(0deg); opacity:1; }
+      100%{ transform: translateY(110vh) rotate(720deg); opacity:0.95; }
+    }
+
+    .sparkle{
+      position:absolute;
+      font-size:18px;
+      opacity:0;
+      animation: sparklePop 2.2s ease-in-out forwards;
+    }
+    @keyframes sparklePop{
+      0%{ transform: scale(0.5); opacity:0; }
+      20%{ opacity:1; transform: scale(1.2); }
+      100%{ opacity:0; transform: scale(1.6); }
+    }
+  </style>
+</head>
+
+<body>
+
+  <audio id="bgMusic" loop>
+    <source src="I Love You Bodyguard 128 Kbps.mp3" type="audio/mpeg" />
+  </audio>
+
+  <audio id="flipSfx">
+    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7b90b59a39.mp3?filename=page-flip-110009.mp3" type="audio/mpeg">
+  </audio>
+
+  <div id="giftOverlay">
+    <div class="giftBox" onclick="openGift()">🎁</div>
+    <div class="giftText">A Secret Love Diary</div>
+    <div class="giftSub">Tap the gift to open your surprise 💌</div>
+  </div>
+
+  <div id="fxLayer"></div>
+  <div id="celebrationLayer"></div>
+
+  <div class="flipControls" id="flipControls">
+    <button class="btn" onclick="prevPage()">⬅ Previous</button>
+    <button class="btn" onclick="nextPage()">Next ➡</button>
+  </div>
+
+  <div class="notebookWrap">
+    <div class="notebook">
+      <div class="themeGlow" id="themeGlow"></div>
+      <div id="book"></div>
+    </div>
+  </div>
+
+  <div class="nav" id="navDots"></div>
+
+<script>
+  const YEAR = 2026;
+  const MONTH_INDEX = 1;
+
+  const music = document.getElementById("bgMusic");
+  const flipSfx = document.getElementById("flipSfx");
+  const fxLayer = document.getElementById("fxLayer");
+  const glow = document.getElementById("themeGlow");
+  const book = document.getElementById("book");
+  const dotsWrap = document.getElementById("navDots");
+  const celebrationLayer = document.getElementById("celebrationLayer");
+
+  // ✅ check if today is Feb 14 OR after Feb 14
+  function isValentineOrAfter(){
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const day = now.getDate();
+
+    if(month > 2) return true;
+    if(month < 2) return false;
+    return day >= 14;
+  }
+
+  const data = [
+    {
+      dateNum:7, day:"Feb 7th", title:"Rose Day 🌹",
+      media:"https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExdHoxNnp3bDltaWtmbG9zcmI4Y2liNHhhN2RiZmVuMWtzcGxtdGpsOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/gIrnPVeioxbKTc4Ker/giphy.gif",
+      msg:"Happy Rose Day chiu 🌹❤️\n\nI don’t have a rose right now, but I swear you’re more beautiful than any flower. You make my mood better without even trying. I just love the way you stay in my mind all day. Stay with me like this always… you feel like my peace.",
+      fx:{emoji:"🌹", glow:"rgba(255,77,109,0.55)"}
+    },
+    {
+      dateNum:8, day:"Feb 8th", title:"Propose Day 💍",
+      media:"https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExOWFwcW5pMjViNzVodTRzZjh4cno2NDhhaWdleTljY2l4bTB4dmkwcSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/vDhDcIEmShbUI/giphy.gif",
+      msg:"Happy Propose Day baby ❤️\n\nI’m not trying to be dramatic, I’m just being real… I like you a lot. More than I planned to. You became important to me so naturally, and now I can’t imagine my days without you. So today I just want to say… I want you, only you. Will you stay with me?",
+      fx:{emoji:"💍", glow:"rgba(208,162,255,0.55)"}
+    },
+    {
+      dateNum:9, day:"Feb 9th", title:"Chocolate Day 🍫",
+      media:"https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExNnhsazByZHYzOHl2YXVtMm9paDB0NGt5MHJoMjRtYW9oa250N3M5NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/aumushJZgIrjaFxLuw/giphy.gif",
+      msg:"Happy Chocolate Day sweetie 🍫❤️\n\nYou’re honestly sweeter than any chocolate. One small talk with you makes my whole day feel good. Your smile is my weakness and your voice feels like comfort. I just want to keep you happy always, because you deserve the cutest love.",
+      fx:{emoji:"🍫", glow:"rgba(130,70,30,0.45)"}
+    },
+    {
+      dateNum:10, day:"Feb 10th", title:"Teddy Day 🧸",
+      media:"https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExOW9jd2plaW9rMmR5azNqN3h0bDJweHVpaW13c3M0dnV3eDgwMTh2NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/eDYW3Ey6iuL4YLo9PO/giphy.gif",
+      msg:"Happy Teddy Day cutie 🧸❤️\n\nTeddies are for comfort… and that’s exactly what you are for me. Whenever I’m stressed or low, you somehow make everything feel better. I don’t know how you do it, but you calm my heart. I just want you to feel safe, loved, and cared for… always.",
+      fx:{emoji:"🧸", glow:"rgba(255,200,170,0.55)"}
+    },
+    {
+      dateNum:11, day:"Feb 11th", title:"Promise Day 🤝",
+      media:"https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExYW9qeDZlbGphMDVlcHBsZ3B5cjFzYm8xOTBuZHhjNGxpYzhxanB4OSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/DIsERFi2YjlmcnbKcK/giphy.gif",
+      msg:"Happy Promise Day my love ❤️\n\nI’m not promising something fake or perfect… I’m promising something real. I’ll stay with you in every mood, every phase, every problem. I’ll always respect you, support you, and never make you feel alone. I’m here for you… and I mean it from my heart.",
+      fx:{emoji:"✨", glow:"rgba(120,150,255,0.50)"}
+    },
+    {
+      dateNum:12, day:"Feb 12th", title:"Hug Day 🫂",
+      media:"https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExMjFianpwemJlN3V6MHA4a3gwMzd3ZGZjdzI1cG05bWV3anVvcWNlaiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/tJJ7L31VvDa9PKjyT6/giphy.gif",
+      msg:"Happy Hug Day cupcake 🤗❤️\n\nI really wish I could hug you today, because you feel like home to me. Not a short hug… a tight one that says “I’m here”. Your presence gives peace and your closeness feels like comfort. If you were in front of me right now, I’d just hold you and smile.",
+      fx:{emoji:"🫂", glow:"rgba(255,150,90,0.45)"}
+    },
+    {
+      dateNum:13, day:"Feb 13th", title:"Kiss Day 💋",
+      media:"https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExa3V1enRjMGI3aWZub3ZxbHA4b2wwc203NHpwcWpkYnA2dXhzeHNnNyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/qKQQUKSSbWBkO2V3KX/giphy.gif",
+      msg:"Happy Kiss Day baby 😘❤️\n\nI don’t want a kiss just for romance, I want it with feelings. A kiss that shows how much I want you and how much you mean to me. With you, even small moments feel special. I just want you close… not for a day, but for always.",
+      fx:{emoji:"💋", glow:"rgba(255,60,110,0.55)"}
+    },
+    {
+      dateNum:14, day:"Feb 14th", title:"Valentine’s Day ❤️",
+      media:"img.jpg.jpeg",
+      msg:"Happy Valentine’s Day my heart ❤️🥹\n\nYou’re not just someone I like… you’re someone I care about deeply. You became my favorite part of every day without even realizing it. I love the way you make me feel calm, happy, and wanted. Today is just a reason for the world to celebrate what I celebrate every single day: You. I love you more than words can say❤️‍🔥❤️‍🔥❤️‍🔥.\n\n(Secret: Tap the title 👀)",
+      fx:{emoji:"✨", glow:"rgba(255,215,120,0.55)"}
+    }
+  ];
+
+  let currentIndex = 0;
+  let unlockedIndex = 0;
+  let timerInterval = null;
+
+  function getUnlockedIndex(){
+    const now = new Date();
+    const m = now.getMonth() + 1;
+    const d = now.getDate();
+
+    if(m < 2) return 0;
+    if(m > 2) return data.length - 1;
+    if(d < 7) return 0;
+    if(d > 14) return data.length - 1;
+
+    const idx = data.findIndex(x => x.dateNum === d);
+    return idx === -1 ? 0 : idx;
+  }
+
+  function setupDots(){
+    dotsWrap.innerHTML = "";
+    for(let i=0;i<=unlockedIndex;i++){
+      const dot = document.createElement("div");
+      dot.className = "dot";
+      dot.id = `dot-${i}`;
+      dot.onclick = () => goTo(i);
+      dotsWrap.appendChild(dot);
+    }
+  }
+
+  function setActiveDot(i){
+    document.querySelectorAll(".dot").forEach(d=>d.classList.remove("active"));
+    const act = document.getElementById(`dot-${i}`);
+    if(act) act.classList.add("active");
+  }
+
+  function spawnFX(emoji){
+    fxLayer.innerHTML = "";
+    for(let k=0;k<22;k++){
+      const el = document.createElement("div");
+      el.className = "fxItem";
+      el.innerHTML = emoji;
+      el.style.left = Math.random()*100 + "vw";
+      el.style.fontSize = (16 + Math.random()*22) + "px";
+      el.style.animationDuration = (4.5 + Math.random()*3) + "s";
+      el.style.animationDelay = (Math.random()*2) + "s";
+      fxLayer.appendChild(el);
+    }
+  }
+
+  function writeText(text, elemId) {
+    const el = document.getElementById(elemId);
+    if (el._typingTimer) clearTimeout(el._typingTimer);
+
+    el.innerHTML = "";
+    let i = 0;
+
+    function step() {
+      const typed = text.slice(0, i);
+      el.innerHTML = typed.replace(/\n/g, "<br>") + `<span class="cursor"></span>`;
+      i++;
+
+      if (i <= text.length) {
+        el._typingTimer = setTimeout(step, 28);
+      } else {
+        el.innerHTML = typed.replace(/\n/g, "<br>");
+      }
+    }
+    step();
+  }
+
+  function updateTimer(targetMs, index){
+    clearInterval(timerInterval);
+    const msgEl = document.getElementById(`msg-${index}`);
+    msgEl.innerHTML = "";
+
+    timerInterval = setInterval(() => {
+      const now = Date.now();
+      const dist = targetMs - now;
+
+      if(dist <= 0){
+        clearInterval(timerInterval);
+        location.reload();
+        return;
+      }
+
+      const days = Math.floor(dist / (1000*60*60*24));
+      const hours = Math.floor((dist % (1000*60*60*24)) / (1000*60*60));
+      const mins = Math.floor((dist % (1000*60*60)) / (1000*60));
+      const secs = Math.floor((dist % (1000*60)) / 1000);
+
+      msgEl.innerHTML = `
+        <div class="lockBox">
+          <div class="lockTitle">Next Surprise Locked 🔒</div>
+          <div style="opacity:0.75; font-size:0.9rem; margin-bottom:10px;">
+            Wait baby... ❤️ it will unlock in:
+          </div>
+          <div class="timerDigits">${days}d ${hours}h ${mins}m ${secs}s</div>
+        </div>
+      `;
+    }, 1000);
+  }
+
+  function buildPages(){
+    book.innerHTML = "";
+    data.forEach((item, i) => {
+      const page = document.createElement("div");
+      page.className = "page";
+      page.id = `page-${i}`;
+      page.style.zIndex = (data.length - i);
+
+      page.innerHTML = `
+        <div class="paper"></div>
+        <div class="rings">
+          ${Array.from({length:10}).map(()=>`<div class="ring"></div>`).join("")}
+        </div>
+
+        <div class="content">
+          <div class="topTag">
+            <div class="daySticker">${item.day}</div>
+            <div class="pageNo">${i+1}/${data.length}</div>
+          </div>
+
+          <h1 id="title-${i}">${item.title}</h1>
+
+          <div class="gifBox" id="gifBox-${i}">
+            <img src="${item.media}" alt="media"/>
+          </div>
+
+          <div class="message" id="msg-${i}"></div>
+        </div>
+      `;
+      book.appendChild(page);
+    });
+  }
+
+  function renderBook(){
+    data.forEach((_, i) => {
+      const p = document.getElementById(`page-${i}`);
+      if(i < currentIndex){
+        p.style.transform = "rotateY(-180deg)";
+        p.style.zIndex = i;
+      }else{
+        p.style.transform = "rotateY(0deg)";
+        p.style.zIndex = (data.length - i);
+      }
+    });
+  }
+
+  // ✅ Confetti + Sparkle for Valentine
+  function startValentineCelebration(){
+    celebrationLayer.style.display = "block";
+    celebrationLayer.innerHTML = "";
+
+    for(let i=0;i<60;i++){
+      const c = document.createElement("div");
+      c.className = "confetti";
+      c.style.left = Math.random()*100 + "vw";
+      c.style.top = (-10 - Math.random()*20) + "vh";
+      c.style.background = `hsl(${Math.random()*360}, 90%, 65%)`;
+      c.style.animationDuration = (2.8 + Math.random()*2.5) + "s";
+      celebrationLayer.appendChild(c);
+      setTimeout(()=> c.remove(), 4500);
+    }
+
+    const sparkleEmojis = ["✨","💖","💗","💞","💘","🌟"];
+    for(let k=0;k<25;k++){
+      const s = document.createElement("div");
+      s.className = "sparkle";
+      s.innerText = sparkleEmojis[Math.floor(Math.random()*sparkleEmojis.length)];
+      s.style.left = Math.random()*100 + "vw";
+      s.style.top = Math.random()*100 + "vh";
+      s.style.animationDelay = (Math.random()*1.2) + "s";
+      s.style.fontSize = (16 + Math.random()*22) + "px";
+      celebrationLayer.appendChild(s);
+      setTimeout(()=> s.remove(), 2800);
+    }
+
+    setTimeout(()=>{
+      celebrationLayer.style.display = "none";
+      celebrationLayer.innerHTML = "";
+    }, 5200);
+  }
+
+  function showContent(i){
+    clearInterval(timerInterval);
+
+    const titleEl = document.getElementById(`title-${i}`);
+    const gifBox = document.getElementById(`gifBox-${i}`);
+    const msgId = `msg-${i}`;
+
+    const targetDay = data[i].dateNum;
+    const unlockDate = new Date(YEAR, MONTH_INDEX, targetDay, 0, 0, 0);
+
+    document.querySelectorAll(".message").forEach(m=>{
+      if(m._typingTimer) clearTimeout(m._typingTimer);
+    });
+
+    if(i > unlockedIndex){
+      gifBox.style.display = "none";
+      titleEl.innerText = "Next Surprise Locked 🔒";
+      document.getElementById(msgId).innerHTML = "";
+      updateTimer(unlockDate.getTime(), i);
+
+      music.pause(); music.currentTime = 0;
+      return;
+    }
+
+    gifBox.style.display = "flex";
+    titleEl.innerText = data[i].title;
+    writeText(data[i].msg, msgId);
+
+    // ✅ Music Logic (AFTER Feb 14 keep playing on all pages)
+    if(isValentineOrAfter()){
+      music.play().catch(()=>{});
+    }else{
+      if(targetDay === 14){
+        music.play().catch(()=>{});
+      }else{
+        music.pause();
+        music.currentTime = 0;
+      }
+    }
+
+    // ✅ Valentine celebration
+    if(targetDay === 14){
+      startValentineCelebration();
+      titleEl.onclick = () => openFinalLetter();
+    }else{
+      titleEl.onclick = null;
+    }
+  }
+
+  function goTo(i){
+    if(i > unlockedIndex) return;
+
+    currentIndex = i;
+    renderBook();
+    setActiveDot(i);
+
+    glow.style.background = data[i].fx.glow;
+    spawnFX(data[i].fx.emoji);
+
+    showContent(i);
+
+    try{ flipSfx.currentTime = 0; flipSfx.play(); }catch(e){}
+  }
+
+  function nextPage(){
+    if(currentIndex < unlockedIndex) goTo(currentIndex + 1);
+  }
+
+  function prevPage(){
+    if(currentIndex > 0) goTo(currentIndex - 1);
+  }
+
+  /* ✅ FIXED SECRET LETTER (shows properly now) */
+  function openFinalLetter(){
+    const pass = prompt("Secret Password 💌\n(Hint: the cutest word you call her 😭❤️)");
+    if(!pass) return;
+
+    const ok = pass.toLowerCase().includes("bala") || pass.toLowerCase().includes("baby");
+
+    if(!ok){
+      alert("Wrong password 😭💔 Try again sweetheart!");
+      return;
+    }
+
+    const msgEl = document.getElementById(`msg-${currentIndex}`);
+
+    // ✅ stop typing if running
+    if (msgEl._typingTimer) clearTimeout(msgEl._typingTimer);
+
+    // ✅ show final letter
+    msgEl.innerHTML = `
+      <div style="
+        background: rgba(255,215,120,0.18);
+        border:1px dashed rgba(255,77,109,0.55);
+        padding:18px 16px;
+        border-radius:18px;
+        box-shadow: 0 18px 40px rgba(0,0,0,0.10);
+      ">
+        <div style="
+          font-weight:900;
+          font-size:1.2rem;
+          color:#b1002d;
+          margin-bottom:10px;
+          text-align:center;
+        ">Final Love Letter 💌</div>
+
+        <div style="
+          font-size:1.08rem;
+          line-height:1.7;
+          font-style:italic;
+          color:#3a0a0a;
+        ">
+          You are not just my Valentine...<br><br>
+          You are my peace, my happiness, my favorite feeling ❤️<br><br>
+          Even when you are far, you still feel close to my heart.<br>
+          I don’t want temporary love… I want forever with you 🥹❤️<br><br>
+          I love you. Always. 💗✨
+        </div>
+      </div>
+    `;
+
+    msgEl.scrollTop = 0;
+  }
+
+  function openGift(){
+    document.getElementById("giftOverlay").style.transform = "translateY(-110%)";
+    document.getElementById("flipControls").style.display = "flex";
+
+    unlockedIndex = getUnlockedIndex();
+    setupDots();
+
+    setTimeout(()=> goTo(unlockedIndex), 600);
+  }
+
+  // INIT
+  unlockedIndex = getUnlockedIndex();
+  buildPages();
+  setupDots();
+  renderBook();
+  goTo(0);
+
+  window.addEventListener("keydown",(e)=>{
+    if(e.key === "ArrowRight") nextPage();
+    if(e.key === "ArrowLeft") prevPage();
+  });
+</script>
+</body>
+</html>
